@@ -70,10 +70,42 @@ const zipOutputFiles = (id = "") => {
   return `./results/${resultId}-output.zip`;
 };
 
+const saveExecution = (execution) => {
+  fs.writeFileSync(
+    `./executions/${execution.id}.json`,
+    JSON.stringify(execution)
+  );
+};
+
+const getExecution = (id) => {
+  try {
+    const data = fs.readFileSync(`./executions/${id}.json`).toString();
+    const execution = JSON.parse(data);
+    return execution;
+  } catch (error) {
+    return undefined;
+  }
+};
+
+const createExecution = (id, params) => {
+  saveExecution({ id, params, isDone: false });
+};
+
+const endExecution = (id) => {
+  const execution = getExecution(id);
+  if (execution) {
+    execution.isDone = true;
+    saveExecution(execution);
+  }
+};
+
 module.exports = {
   getParamString,
   csv2xlsx,
   getLastResultId,
   zipResultFiles,
   zipOutputFiles,
+  createExecution,
+  endExecution,
+  getExecution,
 };

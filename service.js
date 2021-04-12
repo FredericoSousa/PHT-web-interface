@@ -1,22 +1,32 @@
 const utils = require("./utils");
 const { cleanDirectories, createDirectories } = require("./upload");
-const { exec } = require("child_process");
+const { spawn } = require("child_process");
 const fs = require("fs");
 const { phtPath } = require("./constants");
 
-const run = (params) => {
+const run = (params, res) => {
   const paramString = utils.getParamString(params);
   const path = `${phtPath}/pht.pl ${paramString}`;
   console.log(path);
   fs.writeFileSync("done", "0");
   createDirectories();
-  exec(path, (error, data) => {
-    if (error) console.log(error);
-    else {
-      console.log(data);
+  const execution = spawn("/PHT/pht.pl", paramString.split(" "));
+  let id = "";
+  execution.stdout.on("data", (data) => {
+    const stringData = data.toString();
+    console.log(stringData);
+    if (stringData.includes("O id da execução é")) {
+      const arrayData = stringData.split("\n")[0].split(" ");
+      id = arrayData[arrayData.length - 1];
+      utils.createExecution(id, params);
+      res.json({ id, params });
+    }
+  });
+  execution.on("exit", (code) => {
+    if (code === 0) {
       utils.csv2xlsx();
       cleanDirectories();
-      fs.writeFileSync("done", "1");
+      utils.endExecution(id);
     }
   });
 };
@@ -36,8 +46,8 @@ const getOutputZip = (id = "") => {
   return utils.zipOutputFiles(id);
 };
 
-const isDone = () => {
-  return !!Number(fs.readFileSync("./done").toString());
+const getExecution = (id) => {
+  return utils.getExecution(id);
 };
 
-module.exports = { run, getXlsxPath, isDone, getResultZip, getOutputZip };
+module.exports = { run, getXlsxPath, getExecution, getResultZip, getOutputZip };

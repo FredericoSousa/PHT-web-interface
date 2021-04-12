@@ -14,17 +14,17 @@ const service = require("./service");
 app.post("/run", upload, async (req, res) => {
   try {
     const { body } = req;
-    service.run(body);
-    res.json({ running: true });
+    service.run(body, res);
+    // res.json({ running: true });
   } catch (error) {
     const { message } = error;
     res.status(500).json({ message });
   }
 });
 
-app.get("/xlsx", (req, res) => {
+app.get("/xlsx/:id", (req, res) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const path = service.getXlsxPath(id);
     res.download(path, (err) => {
       if (err && err.code === "ENOENT")
@@ -36,9 +36,9 @@ app.get("/xlsx", (req, res) => {
   }
 });
 
-app.get("/result-zip", (req, res) => {
+app.get("/result-zip/:id", (req, res) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const path = service.getResultZip(id);
     res.download(path, (err) => {
       if (err && err.code === "ENOENT")
@@ -50,9 +50,9 @@ app.get("/result-zip", (req, res) => {
   }
 });
 
-app.get("/output-zip", (req, res) => {
+app.get("/output-zip/:id", (req, res) => {
   try {
-    const { id } = req.query;
+    const { id } = req.params;
     const path = service.getOutputZip(id);
     res.download(path, (err) => {
       if (err && err.code === "ENOENT")
@@ -64,9 +64,11 @@ app.get("/output-zip", (req, res) => {
   }
 });
 
-app.get("/done", (req, res) => {
-  const isDone = service.isDone();
-  res.json({ isDone });
+app.get("/execution/:id", (req, res) => {
+  const { id } = req.params;
+  const execution = service.getExecution(id);
+  if (!execution) res.status(404).json({ message: "Execution not found!" });
+  else res.json(execution);
 });
 
 const PORT = 3000;

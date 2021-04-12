@@ -76,11 +76,18 @@ const getForm = () => {
   return form;
 };
 
+const getExecutionId = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("id");
+};
+
 const download = (path) => {
   if (!path) return;
-  const fileName = path.split("-")[0];
-  fetch(`/${path}`).then((res) => {
+  const id = getExecutionId();
+  const fileName = `${id}-${path.split("-")[0]}`;
+  fetch(`/${path}/${id}`).then((res) => {
     if (res.status === 404) showToast("Arquivo não encontrado");
+    else if (res.status !== 200) showToast("Não foi possível baixar o arquivo");
     else {
       res.blob().then((blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -127,6 +134,45 @@ const enableForm = () => {
   loadingButton.classList.add("hide");
 };
 
+const showResults = () => {
+  document.querySelector("#form").classList.add("hide");
+  document.querySelector("#result").classList.remove("hide");
+};
+
+const getExecution = (id) => {
+  return fetch(`/execution/${id}`).then((res) => res.json());
+};
+
+const watchExecution = (id) => {
+  const interval = setInterval(
+    () =>
+      getExecution(id).then((res) => {
+        if (res.message) {
+          showToast(res.message);
+          setExecutionId();
+        } else if (res.isDone) {
+          clearInterval(interval);
+          showResults();
+        }
+      }),
+    5000
+  );
+};
+
+const setExecutionId = (id) => {
+  let url = window.location.origin;
+  if (id) url += `?id=${id}`;
+  window.history.pushState({ path: url }, "", url);
+};
+
+const resetForm = () => {
+  [...fields, fileFields].forEach((f) => {
+    const element = document.querySelector(`#${f}`);
+    element.value = element.defaultValue;
+  });
+  enableForm();
+};
+
 const submit = () => {
   const form = getForm();
   if (!isValid()) {
@@ -147,17 +193,10 @@ const submit = () => {
         }, 1000);
         return;
       } else {
-        const interval = setInterval(() => {
-          fetch("/done")
-            .then((res) => res.json())
-            .then((res) => {
-              if (res.isDone) {
-                clearInterval(interval);
-                document.querySelector("#form").classList.add("hide");
-                document.querySelector("#result").classList.remove("hide");
-              }
-            });
-        }, 5000);
+        if (res.id) {
+          setExecutionId(res.id);
+          watchExecution(res.id);
+        }
       }
     });
 };
@@ -165,5 +204,31 @@ const submit = () => {
 const returnToForm = () => {
   document.querySelector("#form").classList.remove("hide");
   document.querySelector("#result").classList.add("hide");
-  enableForm();
+  setExecutionId();
+  resetForm();
+};
+
+const fillFields = (params) => {
+  if (params) {
+    fields.forEach((f) => {
+      document.querySelector(`#${f}`).value = params[f];
+    });
+  }
+};
+
+window.onload = () => {
+  const id = getExecutionId();
+  if (id) {
+    getExecution(id).then((res) => {
+      if (!res.message) {
+        disableForm();
+        fillFields(res.params);
+        if (res.isDone) showResults();
+        else watchExecution(id);
+      } else {
+        showToast(res.message);
+        setExecutionId();
+      }
+    });
+  }
 };
