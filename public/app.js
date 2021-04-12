@@ -146,19 +146,20 @@ const submit = () => {
           enableForm();
         }, 1000);
         return;
+      } else {
+        const interval = setInterval(() => {
+          fetch("/done")
+            .then((res) => res.json())
+            .then((res) => {
+              if (res.isDone) {
+                clearInterval(interval);
+                document.querySelector("#form").classList.add("hide");
+                document.querySelector("#result").classList.remove("hide");
+              }
+            });
+        }, 5000);
       }
     });
-  const interval = setInterval(() => {
-    fetch("/done")
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.isDone) {
-          clearInterval(interval);
-          document.querySelector("#form").classList.add("hide");
-          document.querySelector("#result").classList.remove("hide");
-        }
-      });
-  }, 5000);
 };
 
 const returnToForm = () => {

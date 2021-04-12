@@ -69,8 +69,5 @@ app.get("/done", (req, res) => {
   res.json({ isDone });
 });
 
-const { createDirectories } = require("./upload");
-createDirectories();
-
 const PORT = 3000;
 app.listen(PORT, () => console.log(`listen on port ${PORT}`));

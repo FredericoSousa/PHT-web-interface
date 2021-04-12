@@ -1,3 +1,5 @@
 node_modules/
-results/*
-uploads/*/*
+results/*.zip
+results/*.xlsx
+uploads/*/*.*
+!uploads/*/.gitkeep
