@@ -22,3 +22,11 @@
   align-items: center;
   flex-direction: column;
 }
+
+.logo {
+ width: 10em;
+}
+
+.navbar-custom {
+  background-color: #28134E;
+}
