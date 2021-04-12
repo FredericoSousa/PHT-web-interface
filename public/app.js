@@ -164,4 +164,5 @@ const submit = () => {
 const returnToForm = () => {
   document.querySelector("#form").classList.remove("hide");
   document.querySelector("#result").classList.add("hide");
+  enableForm();
 };

@@ -16,6 +16,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 const createDirectories = () => {
+  fs.mkdir(uploadsPath, () => {});
   fs.mkdir(`${uploadsPath}/fastq`, () => {});
   fs.mkdir(`${uploadsPath}/identification`, () => {});
   fs.mkdir(`${uploadsPath}/primers`, () => {});
@@ -23,11 +24,8 @@ const createDirectories = () => {
 };
 
 const cleanDirectories = () => {
-  fs.rmdirSync(`${uploadsPath}/fastq`, { recursive: true });
-  fs.rmdirSync(`${uploadsPath}/identification`, { recursive: true });
-  fs.rmdirSync(`${uploadsPath}/primers`, { recursive: true });
-  fs.rmdirSync(`${uploadsPath}/references`, { recursive: true });
-  createDirectories;
+  fs.rmdirSync(`${uploadsPath}`, { recursive: true });
+  createDirectories();
 };
 
 module.exports = {
@@ -43,4 +41,5 @@ module.exports = {
     { name: "references", maxCount: 1 }, //referencias
   ]),
   cleanDirectories,
+  createDirectories,
 };

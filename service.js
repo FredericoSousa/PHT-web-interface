@@ -1,14 +1,15 @@
 const utils = require("./utils");
-const { cleanDirectories } = require("./upload");
+const { cleanDirectories, createDirectories } = require("./upload");
 const { exec } = require("child_process");
 const fs = require("fs");
-const { phtPath, uploadsPath } = require("./constants");
+const { phtPath } = require("./constants");
 
 const run = (params) => {
   const paramString = utils.getParamString(params);
   const path = `${phtPath}/pht.pl ${paramString}`;
   console.log(path);
   fs.writeFileSync("done", "0");
+  createDirectories();
   exec(path, (error, data) => {
     if (error) console.log(error);
     else {
