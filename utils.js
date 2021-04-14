@@ -87,6 +87,15 @@ const getExecution = (id) => {
   }
 };
 
+const getLastExecution = () => {
+  const lastExecutionId = fs
+    .readdirSync("./executions")
+    .map((e) => e.replace(".json", ""))
+    .sort((a, b) => b - a)[0];
+  if (lastExecutionId) return getExecution(lastExecutionId);
+  return undefined;
+};
+
 const createExecution = (id, params) => {
   saveExecution({ id, params, isDone: false });
 };
@@ -108,4 +117,5 @@ module.exports = {
   createExecution,
   endExecution,
   getExecution,
+  getLastExecution,
 };

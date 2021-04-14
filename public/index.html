@@ -18,16 +18,9 @@
       <a class="navbar-brand" href="#">
         <img class="logo" src="./logo.jpg" alt="" class="d-inline-block align-text-top">
       </a>
-      <div class="toast-container position-absolute top-0 end-0 p-3">
-        <div class="toast align-items-center text-white bg-danger border-0 bottom-0 end-0" role="alert"
-          aria-live="assertive" aria-atomic="true">
-          <div class="d-flex">
-            <div class="toast-body">
-              message
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-              aria-label="Close"></button>
-          </div>
+      <div class="autocomplete">
+        <input id="executionSearch" class="form-control" type="text" placeholder="Buscar Execuções" aria-label="Search">
+        <div class="autocomplete-items">
         </div>
       </div>
     </div>
@@ -130,13 +123,14 @@
     <div class="d-grid gap-2 hide" id="loading">
       <button type="button" class="btn btn-success" disabled>
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Executando...
+        <span id="running">Executando</span>
       </button>
     </div>
   </div>
 
   <div class="container mt-3 hide" style="text-align: center;" id="result">
-    <h2>Obrigado por escolher a PHT!</h2>
+    <h2 class="mb-2">Obrigado por escolher a PHT!</h2>
+    <h3 id="executionId" class="mb-2">Execução #</h3>
     <div class="donwload-container mb-3">
       <button type="button" class="btn btn-success mb-3 download-btn" onclick="download('result-zip')">Baixar
         Resultados</button>
@@ -146,6 +140,20 @@
     </div>
     <button class="btn btn-sm btn-primary text-white" onclick="returnToForm()">Nova Análise</button>
 
+  </div>
+  <div class="container">
+     <div class="toast-container position-absolute top-0 end-0 p-3">
+        <div class="toast align-items-center text-white bg-danger border-0 bottom-0 end-0" role="alert"
+          aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              message
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+              aria-label="Close"></button>
+          </div>
+        </div>
+      </div>
   </div>
 
   <!-- JavaScript Bundle with Popper -->

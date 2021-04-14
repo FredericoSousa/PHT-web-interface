@@ -46,8 +46,22 @@ const getOutputZip = (id = "") => {
   return utils.zipOutputFiles(id);
 };
 
+const getExecutions = (q) => {
+  return fs
+    .readdirSync("./executions")
+    .filter((file) => file.includes(".json") && file.startsWith(q))
+    .map((file) => ({ id: file.split(".")[0] }));
+};
+
 const getExecution = (id) => {
   return utils.getExecution(id);
 };
 
-module.exports = { run, getXlsxPath, getExecution, getResultZip, getOutputZip };
+module.exports = {
+  run,
+  getXlsxPath,
+  getExecution,
+  getExecutions,
+  getResultZip,
+  getOutputZip,
+};

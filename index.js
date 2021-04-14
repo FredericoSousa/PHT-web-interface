@@ -1,5 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const { upload } = require("./upload");
+const service = require("./service");
+const middleware = require("./middleware");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -7,15 +10,10 @@ app.use(bodyParser.json());
 
 app.use(express.static("./public"));
 
-const { upload } = require("./upload");
-
-const service = require("./service");
-
-app.post("/run", upload, async (req, res) => {
+app.post("/run", middleware, upload, async (req, res) => {
   try {
     const { body } = req;
     service.run(body, res);
-    // res.json({ running: true });
   } catch (error) {
     const { message } = error;
     res.status(500).json({ message });
@@ -62,6 +60,12 @@ app.get("/output-zip/:id", (req, res) => {
     const { message } = error;
     res.status(500).json({ message });
   }
+});
+
+app.get("/executions", (req, res) => {
+  const { q } = req.query;
+  const executions = service.getExecutions(q);
+  res.status(200).json(executions);
 });
 
 app.get("/execution/:id", (req, res) => {

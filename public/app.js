@@ -10,6 +10,8 @@ const fields = [
 
 const fileFields = ["fastq", "identification", "primers", "references"];
 
+let interval;
+
 const validateFields = (element, isInt = false) => {
   const min = Number(element.min);
   const max = Number(element.max);
@@ -134,9 +136,23 @@ const enableForm = () => {
   loadingButton.classList.add("hide");
 };
 
-const showResults = () => {
-  document.querySelector("#form").classList.add("hide");
-  document.querySelector("#result").classList.remove("hide");
+const showResults = (id) => {
+  if (id) setExecutionId(id);
+  const executionId = getExecutionId();
+  getExecution(executionId).then((res) => {
+    if (res.isDone) {
+      document.querySelector(
+        "#executionId"
+      ).innerHTML = `Execução #${executionId}`;
+      document.querySelector("#form").classList.add("hide");
+      document.querySelector("#result").classList.remove("hide");
+    } else {
+      returnToForm(executionId);
+      watchExecution(executionId);
+      fillFields(res.params);
+      disableForm();
+    }
+  });
 };
 
 const getExecution = (id) => {
@@ -144,7 +160,8 @@ const getExecution = (id) => {
 };
 
 const watchExecution = (id) => {
-  const interval = setInterval(
+  clearInterval(interval);
+  interval = setInterval(
     () =>
       getExecution(id).then((res) => {
         if (res.message) {
@@ -159,10 +176,15 @@ const watchExecution = (id) => {
   );
 };
 
+const setLoadingId = (id) => {
+  document.querySelector("#running").innerHTML = `Executando #${id}`;
+};
+
 const setExecutionId = (id) => {
   let url = window.location.origin;
   if (id) url += `?id=${id}`;
   window.history.pushState({ path: url }, "", url);
+  setLoadingId(id);
 };
 
 const resetForm = () => {
@@ -190,7 +212,7 @@ const submit = () => {
         showToast(res.message);
         setTimeout(() => {
           enableForm();
-        }, 1000);
+        }, 500);
         return;
       } else {
         if (res.id) {
@@ -201,10 +223,10 @@ const submit = () => {
     });
 };
 
-const returnToForm = () => {
+const returnToForm = (id) => {
   document.querySelector("#form").classList.remove("hide");
   document.querySelector("#result").classList.add("hide");
-  setExecutionId();
+  setExecutionId(id);
   resetForm();
 };
 
@@ -216,6 +238,38 @@ const fillFields = (params) => {
   }
 };
 
+const searchInput = document.querySelector("#executionSearch");
+
+const clearSearch = (clearInput = false) => {
+  if (clearInput) searchInput.value = "";
+  const list = document.querySelector(".autocomplete-items");
+  list.innerHTML = "";
+};
+
+searchInput.addEventListener("keyup", (key) => {
+  const list = document.querySelector(".autocomplete-items");
+  const { value } = searchInput;
+  clearSearch();
+  if (!value.trim()) {
+    return;
+  }
+  fetch(`/executions?q=${value}`)
+    .then((res) => res.json())
+    .then((res) => {
+      list.innerHTML = "";
+      if (res.length === 0) {
+        const item = `<div>Nenhuma execução encontrada</div>`;
+        list.innerHTML += item;
+      }
+      res.forEach((r) => {
+        const item = `<div onclick="clearSearch(true); showResults('${r.id}')">
+          <strong>${value}</strong>${r.id.replace(value, "")}
+        </div>`;
+        list.innerHTML += item;
+      });
+    });
+});
+
 window.onload = () => {
   const id = getExecutionId();
   if (id) {
@@ -224,7 +278,10 @@ window.onload = () => {
         disableForm();
         fillFields(res.params);
         if (res.isDone) showResults();
-        else watchExecution(id);
+        else {
+          setLoadingId(id);
+          watchExecution(id);
+        }
       } else {
         showToast(res.message);
         setExecutionId();
@@ -232,3 +289,5 @@ window.onload = () => {
     });
   }
 };
+
+// colocar id no botão de loading
