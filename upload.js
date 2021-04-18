@@ -1,5 +1,5 @@
 const multer = require("multer");
-const fs = require("fs");
+const { execSync } = require("child_process");
 const { uploadsPath } = require("./constants");
 
 const storage = multer.diskStorage({
@@ -15,17 +15,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-const createDirectories = () => {
-  fs.mkdir(uploadsPath, () => {});
-  fs.mkdir(`${uploadsPath}/fastq`, () => {});
-  fs.mkdir(`${uploadsPath}/identification`, () => {});
-  fs.mkdir(`${uploadsPath}/primers`, () => {});
-  fs.mkdir(`${uploadsPath}/references`, () => {});
-};
-
 const cleanDirectories = () => {
-  fs.rmdirSync(`${uploadsPath}`, { recursive: true });
-  createDirectories();
+  execSync(`rm -rf ${uploadsPath}/fastq/*`);
+  execSync(`rm -rf ${uploadsPath}/identification/*`);
+  execSync(`rm -rf ${uploadsPath}/primers/*`);
+  execSync(`rm -rf ${uploadsPath}/references/*`);
 };
 
 module.exports = {
@@ -41,5 +35,4 @@ module.exports = {
     { name: "references", maxCount: 1 }, //referencias
   ]),
   cleanDirectories,
-  createDirectories,
 };

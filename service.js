@@ -1,5 +1,5 @@
 const utils = require("./utils");
-const { cleanDirectories, createDirectories } = require("./upload");
+const { cleanDirectories } = require("./upload");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const { phtPath } = require("./constants");
@@ -8,8 +8,6 @@ const run = (params, res) => {
   const paramString = utils.getParamString(params);
   const path = `${phtPath}/pht.pl ${paramString}`;
   console.log(path);
-  fs.writeFileSync("done", "0");
-  createDirectories();
   const execution = spawn("/PHT/pht.pl", paramString.split(" "));
   let id = "";
   execution.stdout.on("data", (data) => {
