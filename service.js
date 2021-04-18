@@ -1,6 +1,6 @@
 const utils = require("./utils");
 const { cleanDirectories } = require("./upload");
-const { spawn } = require("child_process");
+const { spawn, execSync } = require("child_process");
 const fs = require("fs");
 const { phtPath } = require("./constants");
 
@@ -76,8 +76,8 @@ const deleteExecutions = (ids = []) => {
   ids.forEach((id) => {
     try {
       fs.rmSync(`./executions/${id}.json`);
-      fs.rmdirSync(`./results/${id}`);
-      fs.rmdirSync(`/PHT/resultados/${id}`);
+      execSync(`rm -rf /api/results/${id}`);
+      execSync(`rm -rf /PHT/resultados/${id}`);
     } catch (error) {}
   });
 };
