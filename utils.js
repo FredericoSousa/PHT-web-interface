@@ -88,12 +88,13 @@ const getExecution = (id) => {
 };
 
 const getLastExecution = () => {
-  const lastExecutionId = fs
+  const executions = fs
     .readdirSync("./executions")
+    .filter((e) => e.endsWith(".json") && !e.startsWith("."));
+  const lastExecutionId = executions
     .map((e) => e.replace(".json", ""))
     .sort((a, b) => b - a)[0];
-  if (lastExecutionId) return getExecution(lastExecutionId);
-  return undefined;
+  return getExecution(lastExecutionId);
 };
 
 const createExecution = (id, params) => {

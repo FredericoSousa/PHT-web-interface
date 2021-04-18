@@ -13,18 +13,26 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-light navbar-custom">
+  <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container">
       <a class="navbar-brand" href="#">
         <img class="logo" src="./logo.jpg" alt="" class="d-inline-block align-text-top">
       </a>
-      <div class="autocomplete">
-        <input id="executionSearch" class="form-control" type="text" placeholder="Buscar Execuções" aria-label="Search">
-        <div class="autocomplete-items">
-        </div>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="#" onclick="showExecutions()">Execuções</a>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
+
   <div class="container mb-4" id="form">
     <h3 class="mt-2">Arquivos de entrada</h3>
     <div class="files mb-3">
@@ -141,19 +149,71 @@
     <button class="btn btn-sm btn-primary text-white" onclick="returnToForm()">Nova Análise</button>
 
   </div>
+
+  <div class="container mb-4 hide" id="executions">
+    <div class="d-flex mt-4 mb-3" style="justify-content: space-between;">
+      <h3 class="">Execuções</h3>
+      <div class="d-flex">
+        <input id="executionSearch" class="form-control me-1" type="search" placeholder="Buscar Execuções"
+          aria-label="Search" onsubmit="findExecutions()">
+        <button class="btn btn-success" onclick="findExecutions()">Buscar</button>
+      </div>
+    </div>
+
+    <div class="mb-2" style="max-height: 80vh; overflow-y: auto;">
+      <table class="table table-striped table-bordered table-responsive">
+        <col width="30">
+        <thead>
+          <th>
+            <input class="form-check-input" type="checkbox" id="checkAll" onchange="checkAll()">
+          </th>
+          <th>#</th>
+          <th>Status</th>
+          <th>Data</th>
+          <th></th>
+        </thead>
+        <tbody id="executionList">
+
+        </tbody>
+      </table>
+    </div>
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
+      <button class="btn btn-secondary me-md-2 btn-block" type="button" onclick="returnToForm()">Voltar</button>
+      <button class="btn btn-danger" type="button" onclick="deleteConfirmation()">Excluir Selecionados</button>
+    </div>
+  </div>
+
   <div class="container">
-     <div class="toast-container position-absolute top-0 end-0 p-3">
-        <div class="toast align-items-center text-white bg-danger border-0 bottom-0 end-0" role="alert"
-          aria-live="assertive" aria-atomic="true">
-          <div class="d-flex">
-            <div class="toast-body">
-              message
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-              aria-label="Close"></button>
+    <div class="toast-container position-absolute top-0 end-0 p-3">
+      <div class="toast align-items-center text-white bg-danger border-0 bottom-0 end-0" role="alert"
+        aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body">
+            message
           </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+            aria-label="Close"></button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeModal"></button>
+        </div>
+        <div class="modal-body">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- JavaScript Bundle with Popper -->

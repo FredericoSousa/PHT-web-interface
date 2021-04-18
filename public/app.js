@@ -104,13 +104,18 @@ const download = (path) => {
   });
 };
 
-const showToast = (messsage) => {
+const showToast = (messsage, type = "danger") => {
   const toastEl = document.querySelector(".toast");
   const toast = new bootstrap.Toast(toastEl, {
     animation: true,
     autohide: true,
   });
   toastEl.querySelector(".toast-body").innerHTML = messsage;
+  toastEl.classList.remove(`bg-danger`);
+  toastEl.classList.remove(`bg-success`);
+  toastEl.classList.remove(`bg-info`);
+  toastEl.classList.remove(`bg-warning`);
+  toastEl.classList.add(`bg-${type}`);
   toast.show();
 };
 
@@ -145,6 +150,7 @@ const showResults = (id) => {
         "#executionId"
       ).innerHTML = `Execução #${executionId}`;
       document.querySelector("#form").classList.add("hide");
+      document.querySelector("#executions").classList.add("hide");
       document.querySelector("#result").classList.remove("hide");
     } else {
       returnToForm(executionId);
@@ -167,6 +173,7 @@ const watchExecution = (id) => {
         if (res.message) {
           showToast(res.message);
           setExecutionId();
+          clearInterval(interval);
         } else if (res.isDone) {
           clearInterval(interval);
           showResults();
@@ -177,7 +184,9 @@ const watchExecution = (id) => {
 };
 
 const setLoadingId = (id) => {
-  document.querySelector("#running").innerHTML = `Executando #${id}`;
+  document.querySelector("#running").innerHTML = `Executando ${
+    id ? `#${id}` : ""
+  }`;
 };
 
 const setExecutionId = (id) => {
@@ -226,6 +235,8 @@ const submit = () => {
 const returnToForm = (id) => {
   document.querySelector("#form").classList.remove("hide");
   document.querySelector("#result").classList.add("hide");
+  document.querySelector("#executions").classList.add("hide");
+
   setExecutionId(id);
   resetForm();
 };
@@ -238,37 +249,135 @@ const fillFields = (params) => {
   }
 };
 
-const searchInput = document.querySelector("#executionSearch");
-
-const clearSearch = (clearInput = false) => {
-  if (clearInput) searchInput.value = "";
-  const list = document.querySelector(".autocomplete-items");
-  list.innerHTML = "";
+const getExecutions = (q = "") => {
+  return fetch(`/execution?q=${q}`).then((res) => res.json());
 };
 
-searchInput.addEventListener("keyup", (key) => {
-  const list = document.querySelector(".autocomplete-items");
-  const { value } = searchInput;
-  clearSearch();
-  if (!value.trim()) {
-    return;
+const searchInput = document.querySelector("#executionSearch");
+
+const getExecutionsTable = (q = "") => {
+  const executionList = document.querySelector("#executionList");
+  executionList.innerHTML = "";
+
+  getExecutions(q).then((res) => {
+    if (res.length > 0) {
+      res.forEach((e) => {
+        const item = `
+    <tr>
+        <td>
+          <input class="form-check-input" type="checkbox" id="${
+            e.id
+          }" onchange="verifyChecked()">
+        </td>
+        <td><strong>${e.id}<stong></td>
+        <td>${
+          e.isDone
+            ? '<span class="badge bg-success">Finalizada</span>'
+            : '<span class="badge bg-primary">Em execução</span>'
+        }</td>
+        <td>${e.date}</td>
+        <td>
+            <a href="" onclick="showResults(${e.id})">Visualizar</a>
+        </td>
+    </tr>
+
+
+     `;
+        executionList.innerHTML += item;
+      });
+    } else {
+      executionList.innerHTML += `
+      <tr>
+        <td colspan="5" class="text-center">Nenhuma execução encontrada</td>
+      </tr>`;
+    }
+  });
+};
+
+const checkAll = () => {
+  const checked = document.querySelector("#checkAll").checked;
+  document.querySelectorAll("td>input").forEach((i) => (i.checked = checked));
+};
+
+const verifyChecked = () => {
+  const allChecked = [...document.querySelectorAll("td>input")].every(
+    (i) => i.checked === true
+  );
+  document.querySelector("#checkAll").checked = allChecked;
+};
+
+const showModal = (title, body, footer) => {
+  document.querySelector(".modal-title").innerHTML = title;
+  document.querySelector(".modal-body").innerHTML = body;
+  document.querySelector(".modal-footer").innerHTML = footer;
+  const modal = new bootstrap.Modal(document.querySelector(".modal"), {});
+  modal.show();
+};
+
+const closeModal = () => {
+  document.querySelector("#closeModal").click();
+};
+
+const deleteConfirmation = () => {
+  const checkeds = [...document.querySelectorAll("td>input")]
+    .filter((i) => i.checked)
+    .map((i) => `<strong>${i.id}</strong>`);
+  if (checkeds.length > 0) {
+    showModal(
+      "Tem certeza?",
+      `<p>Tem certeza que deseja exluir ${
+        checkeds.length > 1 ? "as execuções" : "a execução"
+      } ${checkeds.join(", ")} ?</p>`,
+      `<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+       <button type="button" class="btn btn-danger" onclick="deleteExexecutions()">Excluir</button>`
+    );
+  } else {
+    showToast("Nenhuma execução selecionada.", "warning");
   }
-  fetch(`/executions?q=${value}`)
+};
+
+const deleteExexecutions = () => {
+  const checkeds = [...document.querySelectorAll("td>input")]
+    .filter((i) => i.checked)
+    .map((i) => i.id);
+  if (checkeds.length === 0) return;
+  fetch("/execution", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(checkeds),
+  })
     .then((res) => res.json())
     .then((res) => {
-      list.innerHTML = "";
-      if (res.length === 0) {
-        const item = `<div>Nenhuma execução encontrada</div>`;
-        list.innerHTML += item;
+      if (res.message) showToast(res.message);
+      else {
+        closeModal();
+        showToast("Execuções excluídas com sucesso.", "success");
+        getExecutionsTable();
       }
-      res.forEach((r) => {
-        const item = `<div onclick="clearSearch(true); showResults('${r.id}')">
-          <strong>${value}</strong>${r.id.replace(value, "")}
-        </div>`;
-        list.innerHTML += item;
-      });
     });
-});
+};
+
+const findExecutions = () => {
+  const q = document.querySelector("#executionSearch").value;
+  getExecutionsTable(q);
+};
+
+const showExecutions = () => {
+  clearInterval(interval);
+  document.querySelector("#form").classList.add("hide");
+  document.querySelector("#result").classList.add("hide");
+  document.querySelector("#executions").classList.remove("hide");
+  getExecutionsTable();
+};
+
+document
+  .querySelector("#executionSearch")
+  .addEventListener("keyup", function (event) {
+    if (event.keyCode === 13) {
+      event.preventDefault();
+      findExecutions();
+    }
+  });
 
 window.onload = () => {
   const id = getExecutionId();
@@ -289,5 +398,3 @@ window.onload = () => {
     });
   }
 };
-
-// colocar id no botão de loading
