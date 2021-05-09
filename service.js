@@ -4,14 +4,16 @@ const { spawn, execSync } = require("child_process");
 const fs = require("fs");
 const { phtPath } = require("./constants");
 
+let execution;
+
 const run = (params, res) => {
   const paramString = utils.getParamString(params);
   const path = `${phtPath}/pht.pl ${paramString}`;
   console.log(path);
-  const execution = spawn("/PHT/pht.pl", paramString.split(" "));
+  execution = spawn("perl", ["/PHT/pht.pl", ...paramString.split(" ")]);
   let id = "";
   execution.stdout.on("data", (data) => {
-    const stringData = data.toString();
+    const stringData = data.toString().trim();
     console.log(stringData);
     if (stringData.includes("O id da execução é")) {
       const arrayData = stringData.split("\n")[0].split(" ");
@@ -25,6 +27,10 @@ const run = (params, res) => {
       utils.csv2xlsx();
       cleanDirectories();
       utils.endExecution(id);
+    } else if (code === null) {
+      console.log("Execução abortada");
+      cleanDirectories();
+      utils.abortExecution(id);
     }
   });
 };
@@ -82,6 +88,11 @@ const deleteExecutions = (ids = []) => {
   });
 };
 
+const abortExecution = (id) => {
+  execution.kill();
+  return utils.abortExecution(id);
+};
+
 module.exports = {
   run,
   getXlsxPath,
@@ -90,4 +101,5 @@ module.exports = {
   getResultZip,
   getOutputZip,
   deleteExecutions,
+  abortExecution,
 };

@@ -36,8 +36,6 @@ const validateFileFields = (element) => {
   }
 };
 
-// TODO: FILE FIELDS VERIFICATION
-
 const getFiles = () => {
   return fileFields.map((fileField) => {
     const element = document.querySelector(`#${fileField}`);
@@ -139,6 +137,7 @@ const enableForm = () => {
   startButton.disabled = false;
   startButton.classList.remove("hide");
   loadingButton.classList.add("hide");
+  document.querySelector("#abort").disabled = false;
 };
 
 const showResults = (id) => {
@@ -149,6 +148,11 @@ const showResults = (id) => {
       document.querySelector(
         "#executionId"
       ).innerHTML = `Execução #${executionId}`;
+      document.querySelector("#result-status").innerHTML = getBadge(res);
+
+      if (res.isAborted)
+        document.querySelector("#download-results").disabled = true;
+
       document.querySelector("#form").classList.add("hide");
       document.querySelector("#executions").classList.add("hide");
       document.querySelector("#result").classList.remove("hide");
@@ -255,10 +259,15 @@ const getExecutions = (q = "") => {
 
 const searchInput = document.querySelector("#executionSearch");
 
+const getBadge = (e) => {
+  if (e.isAborted) return '<span class="badge bg-danger">Cancelada</span>';
+  if (e.isDone) return '<span class="badge bg-success">Finalizada</span>';
+  return '<span class="badge bg-primary">Em execução</span>';
+};
+
 const getExecutionsTable = (q = "") => {
   const executionList = document.querySelector("#executionList");
   executionList.innerHTML = "";
-
   getExecutions(q).then((res) => {
     if (res.length > 0) {
       res.forEach((e) => {
@@ -270,11 +279,7 @@ const getExecutionsTable = (q = "") => {
           }" onchange="verifyChecked()">
         </td>
         <td><strong>${e.id}<stong></td>
-        <td>${
-          e.isDone
-            ? '<span class="badge bg-success">Finalizada</span>'
-            : '<span class="badge bg-primary">Em execução</span>'
-        }</td>
+        <td>${getBadge(e)}</td>
         <td>${e.date}</td>
         <td>
             <a href="" onclick="showResults(${e.id})">Visualizar</a>
@@ -368,6 +373,19 @@ const showExecutions = () => {
   document.querySelector("#result").classList.add("hide");
   document.querySelector("#executions").classList.remove("hide");
   getExecutionsTable();
+};
+
+const abortExecution = () => {
+  const id = getExecutionId();
+  clearInterval(interval);
+  document.querySelector("#abort").disabled = true;
+  fetch(`/execution/${id}`, { method: "PUT" })
+    .then((res) => res.json())
+    .then((res) => {
+      document.querySelector("#abort").disabled = false;
+      showToast(`Execução #${id} cancelada!`, "success");
+      resetForm();
+    });
 };
 
 document

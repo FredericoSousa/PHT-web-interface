@@ -87,5 +87,15 @@ app.delete("/execution", (req, res) => {
   }
 });
 
+app.put("/execution/:id", (req, res) => {
+  try {
+    const { id } = req.params;
+    const execution = service.abortExecution(id);
+    res.json(execution);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => console.log(`listen on port ${PORT}`));

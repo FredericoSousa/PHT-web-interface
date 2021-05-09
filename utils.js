@@ -52,7 +52,9 @@ const zipResultFiles = (id = "") => {
   if (!id) resultId = getLastResultId();
   const file = new AdmZip();
   file.addLocalFolder(`${phtPath}/resultados/${resultId}/resultados_finais`);
-  file.addLocalFile(`./results/${resultId}/resultado_final.xlsx`);
+  try {
+    file.addLocalFile(`./results/${resultId}/resultado_final.xlsx`);
+  } catch (error) {}
   fs.writeFileSync(
     `./results/${resultId}/resultados_finais.zip`,
     file.toBuffer()
@@ -65,7 +67,9 @@ const zipOutputFiles = (id = "") => {
   if (!id) resultId = getLastResultId();
   const file = new AdmZip();
   file.addLocalFolder(`${phtPath}/resultados/${resultId}`);
-  file.addLocalFile(`./results/${resultId}/resultado_final.xlsx`);
+  try {
+    file.addLocalFile(`./results/${resultId}/resultado_final.xlsx`);
+  } catch (error) {}
   fs.writeFileSync(`./results/${resultId}-output.zip`, file.toBuffer());
   return `./results/${resultId}-output.zip`;
 };
@@ -101,12 +105,18 @@ const createExecution = (id, params) => {
   saveExecution({ id, params, isDone: false });
 };
 
-const endExecution = (id) => {
+const endExecution = (id, abort = false) => {
   const execution = getExecution(id);
   if (execution) {
     execution.isDone = true;
+    execution.isAborted = abort;
     saveExecution(execution);
   }
+};
+
+const abortExecution = (id) => {
+  endExecution(id, true);
+  return getExecution(id);
 };
 
 module.exports = {
@@ -119,4 +129,5 @@ module.exports = {
   endExecution,
   getExecution,
   getLastExecution,
+  abortExecution,
 };
